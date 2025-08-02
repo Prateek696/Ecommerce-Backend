@@ -29,5 +29,4 @@ This is a Node.js backend for a full-stack E-commerce application built with the
 
 ---
 
-## Folder Structure
 
