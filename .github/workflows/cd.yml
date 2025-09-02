@@ -1,0 +1,78 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/ecommerce-backend
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your staging deployment commands here
+        # Example: kubectl apply -f k8s/staging/
+        # Example: docker-compose -f docker-compose.staging.yml up -d
+
+    - name: Run health check
+      run: |
+        echo "Running health checks..."
+        # Add health check commands here
+        # Example: curl -f http://staging.yourdomain.com/health
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment commands here
+        # Example: kubectl apply -f k8s/production/
+        # Example: docker-compose -f docker-compose.prod.yml up -d
+
+    - name: Run production health check
+      run: |
+        echo "Running production health checks..."
+        # Add production health check commands here
+        # Example: curl -f https://yourdomain.com/health
+
+    - name: Notify deployment
+      run: |
+        echo "Production deployment completed successfully!"
+        # Add notification logic here (Slack, Discord, email, etc.)
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    environment: ${{ github.ref == 'refs/heads/main' && 'staging' || 'production' }}
+    
+    steps:
+    - name: Rollback deployment
+      run: |
+        echo "Rolling back deployment..."
+        # Add rollback commands here
+        # Example: kubectl rollout undo deployment/ecommerce-backend
+        # Example: docker-compose down && docker-compose up -d --scale app=0
+
+    - name: Notify rollback
+      run: |
+        echo "Deployment rolled back due to failure!"
+        # Add rollback notification logic here

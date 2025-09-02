@@ -20,6 +20,15 @@ app.use(express.json());
 
 const errorHandler = require('./middlewares/errorMiddleware');
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Register routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -37,4 +46,10 @@ app.use(errorHandler);
 
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
